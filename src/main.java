@@ -112,7 +112,7 @@ class AppVendasEstoque {
         estoque = new Estoque();
         frame = new JFrame("Peixaria Esperança");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 400);
+        frame.setSize(410, 400);
 
         ImageIcon icon = new ImageIcon("src/fotos/fish_13319128.png"); // Altere para o caminho do seu ícone
         frame.setIconImage(icon.getImage());
@@ -127,7 +127,7 @@ class AppVendasEstoque {
         JTextField precoField = new JTextField(10);
         JTextField quantidadeField = new JTextField(10);
         JButton adicionarButton = new JButton("Adicionar Produto");
-        JTextArea areaTexto = new JTextArea(10, 30);
+        JTextArea areaTexto = new JTextArea(10, 33);
         areaTexto.setEditable(false);
 
         adicionarButton.addActionListener(e -> {
@@ -204,7 +204,7 @@ class AppVendasEstoque {
         // Aba de Alterar Produto
         JPanel alterarPanel = new JPanel();
         alterarPanel.setLayout(new FlowLayout());
-        JTextField alterarNomeField = new JTextField(20);
+        JTextField alterarNomeField = new JTextField(22);
         JTextField novoNomeField = new JTextField(22    );
         JTextField novoPrecoField = new JTextField(20);
         JTextField novaQuantidadeField = new JTextField(20);
