@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +18,16 @@ class Produto {
         return nome;
     }
 
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
     public double getPreco() {
         return preco;
+    }
+
+    public void setPreco(double preco) {
+        this.preco = preco;
     }
 
     public int getQuantidade() {
@@ -56,6 +62,19 @@ class Estoque {
         }
         return null;
     }
+
+    public boolean atualizarProduto(String nomeAntigo, String novoNome, double novoPreco, int novaQuantidade) {
+        Produto produto = buscarProduto(nomeAntigo);
+        if (produto != null) {
+            if (buscarProduto(novoNome) == null || novoNome.equalsIgnoreCase(nomeAntigo)) {
+                produto.setNome(novoNome);
+                produto.setPreco(novoPreco);
+                produto.setQuantidade(novaQuantidade);
+                return true; // Atualização bem-sucedida
+            }
+        }
+        return false; // Falha na atualização
+    }
 }
 
 class Venda {
@@ -84,22 +103,26 @@ class Venda {
     }
 }
 
- class AppVendasEstoque {
+class AppVendasEstoque {
     private Estoque estoque;
     private double totalVendas = 0.0; // Contador total de vendas
     private JFrame frame;
 
     public AppVendasEstoque() {
         estoque = new Estoque();
-        frame = new JFrame("App de Vendas e Estoque");
+        frame = new JFrame("Peixaria Esperança");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 600);
-        frame.setLayout(new FlowLayout());
+        frame.setSize(400, 400);
 
-        ImageIcon icon = new ImageIcon("src/fotos/casa.png"); // Substitua pelo caminho da sua imagem
+        ImageIcon icon = new ImageIcon("src/fotos/fish_13319128.png"); // Altere para o caminho do seu ícone
         frame.setIconImage(icon.getImage());
 
-        // Campos para adicionar produtos
+
+        JTabbedPane tabbedPane = new JTabbedPane();
+
+        // Aba de Adicionar Produtos
+        JPanel adicionarPanel = new JPanel();
+        adicionarPanel.setLayout(new FlowLayout());
         JTextField nomeField = new JTextField(10);
         JTextField precoField = new JTextField(10);
         JTextField quantidadeField = new JTextField(10);
@@ -108,19 +131,39 @@ class Venda {
         areaTexto.setEditable(false);
 
         adicionarButton.addActionListener(e -> {
-            String nome = nomeField.getText();
-            double preco = Double.parseDouble(precoField.getText());
-            int quantidade = Integer.parseInt(quantidadeField.getText());
+            try {
+                String nome = nomeField.getText();
+                double preco = Double.parseDouble(precoField.getText());
+                int quantidade = Integer.parseInt(quantidadeField.getText());
 
-            Produto produto = new Produto(nome, preco, quantidade);
-            estoque.adicionarProduto(produto);
-            atualizarExibicaoEstoque(areaTexto);
+                if (preco < 0 || quantidade < 0) {
+                    throw new NumberFormatException("Preço e quantidade devem ser positivos.");
+                }
+
+                Produto produto = new Produto(nome, preco, quantidade);
+                estoque.adicionarProduto(produto);
+                atualizarExibicaoEstoque(areaTexto);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Entrada inválida: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
             nomeField.setText("");
             precoField.setText("");
             quantidadeField.setText("");
         });
 
-        // Campos para vendas
+        adicionarPanel.add(new JLabel("Nome:"));
+        adicionarPanel.add(nomeField);
+        adicionarPanel.add(new JLabel("Preço:"));
+        adicionarPanel.add(precoField);
+        adicionarPanel.add(new JLabel("Quantidade:"));
+        adicionarPanel.add(quantidadeField);
+        adicionarPanel.add(adicionarButton);
+        adicionarPanel.add(areaTexto);
+        tabbedPane.addTab("Adicionar Produto", adicionarPanel);
+
+        // Aba de Vendas
+        JPanel vendaPanel = new JPanel();
+        vendaPanel.setLayout(new FlowLayout());
         JTextField vendaNomeField = new JTextField(10);
         JTextField vendaQuantidadeField = new JTextField(10);
         JButton vendaButton = new JButton("Vender Produto");
@@ -149,26 +192,65 @@ class Venda {
             vendaQuantidadeField.setText("");
         });
 
-        // Layout
-        frame.add(new JLabel("Adicionar Produto:"));
-        frame.add(new JLabel("Nome:"));
-        frame.add(nomeField);
-        frame.add(new JLabel("Preço:"));
-        frame.add(precoField);
-        frame.add(new JLabel("Quantidade:"));
-        frame.add(quantidadeField);
-        frame.add(adicionarButton);
-        frame.add(areaTexto);
+        vendaPanel.add(new JLabel("Nome:"));
+        vendaPanel.add(vendaNomeField);
+        vendaPanel.add(new JLabel("Quantidade:"));
+        vendaPanel.add(vendaQuantidadeField);
+        vendaPanel.add(vendaButton);
+        vendaPanel.add(areaVendaTexto);
+        vendaPanel.add(totalVendasArea);
+        tabbedPane.addTab("Vender Produto", vendaPanel);
 
-        frame.add(new JLabel("Vender Produto:"));
-        frame.add(new JLabel("Nome:"));
-        frame.add(vendaNomeField);
-        frame.add(new JLabel("Quantidade:"));
-        frame.add(vendaQuantidadeField);
-        frame.add(vendaButton);
-        frame.add(areaVendaTexto);
-        frame.add(totalVendasArea); // Adiciona a área de total de vendas
+        // Aba de Alterar Produto
+        JPanel alterarPanel = new JPanel();
+        alterarPanel.setLayout(new FlowLayout());
+        JTextField alterarNomeField = new JTextField(20);
+        JTextField novoNomeField = new JTextField(22    );
+        JTextField novoPrecoField = new JTextField(20);
+        JTextField novaQuantidadeField = new JTextField(20);
+        JButton alterarProdutoButton = new JButton("Alterar Produto");
 
+        alterarProdutoButton.addActionListener(e -> {
+            String nomeAntigo = alterarNomeField.getText();
+            String novoNome = novoNomeField.getText();
+            double novoPreco;
+            int novaQuantidade;
+
+            try {
+                novoPreco = Double.parseDouble(novoPrecoField.getText());
+                novaQuantidade = Integer.parseInt(novaQuantidadeField.getText());
+
+                if (novoPreco < 0 || novaQuantidade < 0) {
+                    throw new NumberFormatException("Preço e quantidade devem ser positivos.");
+                }
+
+                if (estoque.atualizarProduto(nomeAntigo, novoNome, novoPreco, novaQuantidade)) {
+                    areaTexto.append("Produto alterado: " + nomeAntigo + " para " + novoNome + " - Novo Preço: R$ " + novoPreco + " - Nova Quantidade: " + novaQuantidade + ".\n");
+                } else {
+                    areaTexto.append("Falha ao alterar produto! Produto não encontrado ou novo nome já existe.\n");
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Entrada inválida: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+
+            alterarNomeField.setText("");
+            novoNomeField.setText("");
+            novoPrecoField.setText("");
+            novaQuantidadeField.setText("");
+        });
+
+        alterarPanel.add(new JLabel("Nome Antigo:"));
+        alterarPanel.add(alterarNomeField);
+        alterarPanel.add(new JLabel("Novo Nome:"));
+        alterarPanel.add(novoNomeField);
+        alterarPanel.add(new JLabel("Novo Preço:"));
+        alterarPanel.add(novoPrecoField);
+        alterarPanel.add(new JLabel("Nova Quantidade:"));
+        alterarPanel.add(novaQuantidadeField);
+        alterarPanel.add(alterarProdutoButton);
+        tabbedPane.addTab("Alterar Produto", alterarPanel);
+
+        frame.add(tabbedPane);
         frame.setVisible(true);
     }
 
